@@ -64,16 +64,16 @@ implements CompositeNode {
    */
   @Override
   public Object clone() {
-    Compartment cloned = (Compartment) super.clone();
-    cloned.labels = new ArrayList<Label>();
-    for (Label label : labels) {
-      Label clonedLabel = (Label) label.clone();
-      // Note that the source might have changed for the clone
-      clonedLabel.setSource(label.getSource());
-      clonedLabel.setParent(cloned);
-      cloned.labels.add(clonedLabel);
-    }
-    return cloned;
+	  Compartment cloned = (Compartment) super.clone();
+	    cloned.setLabels(new ArrayList<Label>());
+	    for (Label label : labels) {
+	      Label clonedLabel = (Label) label.clone();
+	      // Note that the source might have changed for the clone
+	      clonedLabel.setSource(label.getSource());
+	      clonedLabel.setParent(cloned);
+	      cloned.addLabel(clonedLabel);
+	    }
+	    return cloned;
   }
 
   /**
@@ -116,7 +116,13 @@ implements CompositeNode {
     labels.add(label);
     label.setParent(this);
   }
-
+  /**
+   * Set this object's labels to labels..
+   * @param labels the list of labels.
+   */
+  public void setLabels(List<Label> labels) {
+    this.labels = labels;
+  }
   /**
    * Removes all labels from this Compartment.
    */

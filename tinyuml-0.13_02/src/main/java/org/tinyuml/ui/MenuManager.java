@@ -85,21 +85,21 @@ public class MenuManager implements ActionListener {
     createMenuItem(editMenu, "undo");
     createMenuItem(editMenu, "redo");
     editMenu.addSeparator();
-    /*
+    
     createMenuItem(editMenu, "cut");
     createMenuItem(editMenu, "copy");
     createMenuItem(editMenu, "paste");
-     */
+    
     createMenuItem(editMenu, "delete");
 
-    //editMenu.addSeparator();
-    //createMenuItem(editMenu, "settings");
+   editMenu.addSeparator();
+    createMenuItem(editMenu, "settings");
 
     enableMenuItem("UNDO", false);
     enableMenuItem("REDO", false);
-    //enableMenuItem("CUT", false);
-    //enableMenuItem("COPY", false);
-    //enableMenuItem("PASTE", false);
+    enableMenuItem("CUT", false);
+    enableMenuItem("COPY", false);
+    enableMenuItem("PASTE", false);
     enableMenuItem("DELETE", false);
   }
 

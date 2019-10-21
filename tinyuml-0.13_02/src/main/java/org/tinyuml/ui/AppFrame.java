@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -45,6 +47,7 @@ import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.tinyuml.draw.Label;
+import org.tinyuml.draw.DiagramElement;
 import org.tinyuml.draw.LabelChangeListener;
 import org.tinyuml.model.UmlModel;
 import org.tinyuml.util.AppCommandListener;
@@ -69,6 +72,8 @@ import org.tinyuml.util.MethodCall;
  * @author Wei-ju Wu
  * @version 1.0
  */
+
+
 public class AppFrame extends JFrame
 implements EditorStateListener, AppCommandListener, SelectionListener {
 
@@ -83,6 +88,8 @@ implements EditorStateListener, AppCommandListener, SelectionListener {
   private transient MainToolbarManager toolbarmanager;
   private transient MenuManager menumanager;
   private transient File currentFile;
+  private LinkedList<DiagramEditor> diagramEditors;
+  private Collection<DiagramElement> lastCopiedElements;
   private transient Map<String, MethodCall> selectorMap =
     new HashMap<String, MethodCall>();
 
@@ -105,10 +112,16 @@ implements EditorStateListener, AppCommandListener, SelectionListener {
     initSelectorMap();
   }
 
+ 
+
   /**
    * Creates a new instance of AppFrame.
    */
   public AppFrame() {
+	
+	diagramEditors = new LinkedList<DiagramEditor>();
+	lastCopiedElements = null;
+		
     setTitle(getResourceString("application.title"));
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     editorDispatcher = new EditorCommandDispatcher(this);
@@ -133,15 +146,27 @@ implements EditorStateListener, AppCommandListener, SelectionListener {
     initSelectorMap();
     //setExtendedState(JFrame.MAXIMIZED_BOTH);
   }
+ 
+  
+ 
+
 
   /**
    * Returns the currently displayed editor.
    * @return the current editor
    */
   public DiagramEditor getCurrentEditor() {
-    return currentEditor;
+	  return currentEditor;
+	  //int currentTabIndex = tabbedPane.getSelectedIndex();		
+	  //return diagramEditors.get(currentTabIndex);
   }
-
+  /**
+   * Returns the last collection of items ready to copy. 
+   * @return Collection of items ready to copy
+   */
+  public Collection<DiagramElement> getElementsToCopy(){
+	  return lastCopiedElements;
+  }
   /**
    * Returns the menu manager.
    * @return the menu manager
@@ -289,15 +314,15 @@ implements EditorStateListener, AppCommandListener, SelectionListener {
    */
   public void selectionStateChanged() {
     boolean hasSelection = getCurrentEditor().getSelectedElements().size() > 0;
-    /*
+   
     menumanager.enableMenuItem("CUT", hasSelection);
     menumanager.enableMenuItem("COPY", hasSelection);
-     */
+     
     menumanager.enableMenuItem("DELETE", hasSelection);
-    /*
+   
     toolbarmanager.enableButton("CUT", hasSelection);
     toolbarmanager.enableButton("COPY", hasSelection);
-     */
+     
     toolbarmanager.enableButton("DELETE", hasSelection);
   }
 
@@ -320,6 +345,14 @@ implements EditorStateListener, AppCommandListener, SelectionListener {
         getClass().getMethod("save")));
       selectorMap.put("EXPORT_GFX", new MethodCall(
         getClass().getMethod("exportGfx")));
+      
+      selectorMap.put("CUT", new MethodCall(
+    	getClass().getMethod("cut")));
+      selectorMap.put("COPY", new MethodCall(
+    	getClass().getMethod("copy")));
+      selectorMap.put("PASTE", new MethodCall(
+        getClass().getMethod("paste")));
+      
       selectorMap.put("DELETE", new MethodCall(
         getClass().getMethod("delete")));
       selectorMap.put("EDIT_SETTINGS", new MethodCall(
@@ -577,7 +610,35 @@ implements EditorStateListener, AppCommandListener, SelectionListener {
         .getString("application.title"));
     }
   }
+  /**
+   * cut the current selection.
+   */
+  public void cut(){
+	  copy();
+	  delete();
+	  selectionStateChanged();
+  }
+  /**
+   * Keeps track of the last copied elements (the ones selected when
+   * Ctrl+C was used).
+   * Creado para cumplir con la solicitud E de la tarea.
+   */
+  public void copy(){
+	  boolean hasSelection = getCurrentEditor().getSelectedElements().size() > 0;
 
+	  if(hasSelection)
+	    lastCopiedElements = getCurrentEditor().getSelectedElements();
+
+	  //adicionalmente, hay que habilitar el botón PASTE!
+	  menumanager.enableMenuItem("PASTE", hasSelection);
+	  toolbarmanager.enableButton("PASTE", hasSelection);
+  }
+  /**
+   * paste the current selection.
+   */
+  public void paste(){
+		getCurrentEditor().pasteElement(lastCopiedElements);
+  }
   /**
    * Deletes the current selection.
    */
