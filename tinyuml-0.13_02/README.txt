@@ -11,7 +11,8 @@ NOTE: At this moment, it is not recommended to save any important data.
 
 Platform
 --------
-At least Java SE 6 is required to compile and execute the application.
+Java SE 25 (JDK 25) is required to compile and execute the application.
+The Maven build uses Maven 3.9 or later.
 
 Starting the software
 ---------------------
@@ -155,4 +156,3 @@ Project monitoring:
 - Testing environment
 - Mock framework integration (jMock)
 - Maven added as a build tool including PMD, JDepend, Checkstyle and Cobertura
-
