@@ -32,8 +32,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -41,6 +43,7 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
@@ -66,6 +69,7 @@ import org.tinyuml.model.RelationEndType;
 import org.tinyuml.model.UmlClass;
 import org.tinyuml.ui.diagram.commands.ConvertConnectionTypeCommand;
 import org.tinyuml.util.AppCommandListener;
+import org.tinyuml.util.ApplicationResources;
 import org.tinyuml.ui.diagram.commands.DeleteElementCommand;
 import org.tinyuml.ui.diagram.commands.MoveElementCommand;
 import org.tinyuml.ui.diagram.commands.PasteElementCommand;
@@ -251,6 +255,17 @@ DiagramEditorNotification, DiagramOperations, NodeChangeListener {
    */
   public void deleteSelection() {
     Collection<DiagramElement> elements = getSelectedElements();
+    if (elements.size() > 1) {
+      ApplicationResources resources = ApplicationResources.getInstance();
+      String message = MessageFormat.format(
+        resources.getString("dialog.deleteelements.confirm.msg"),
+        elements.size());
+      String title = resources.getString("dialog.deleteelements.confirm.title");
+      if (JOptionPane.showConfirmDialog(frame, message, title,
+          JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+        return;
+      }
+    }
     execute(new DeleteElementCommand(this, elements));
   }
   /**
@@ -430,6 +445,7 @@ DiagramEditorNotification, DiagramOperations, NodeChangeListener {
       Label label = currentEditor.getLabel();
       SetLabelTextCommand command = new SetLabelTextCommand(label, text);
       execute(command);
+      notifyStateChanged();
       currentEditor.hideEditor();
       repaint();
       return true;
@@ -594,6 +610,37 @@ DiagramEditorNotification, DiagramOperations, NodeChangeListener {
   public void setScaling(Scaling aScaling) {
     scaling = aScaling;
     repaint();
+  }
+
+  /**
+   * Adjusts the zoom and the visible area so that all the elements of the
+   * diagram fit into the window. The elements themselves are not modified.
+   */
+  public void fitToWindow() {
+    Rectangle2D bounds = null;
+    for (DiagramElement child : diagram.getChildren()) {
+      if (bounds == null) {
+        bounds = child.getAbsoluteBounds().getBounds2D();
+      } else {
+        bounds.add(child.getAbsoluteBounds());
+      }
+    }
+    if (bounds == null) {
+      return;
+    }
+    bounds.setRect(bounds.getX() - MARGIN_LEFT, bounds.getY() - MARGIN_TOP,
+      bounds.getWidth() + MARGIN_LEFT + MARGIN_RIGHT,
+      bounds.getHeight() + MARGIN_TOP + MARGIN_BOTTOM);
+    Dimension viewSize = getParent().getSize();
+    // the editor size is not scaled, so we only zoom out to stay scrollable
+    double scaleFactor = Math.min(1.0, Math.min(
+      viewSize.getWidth() / bounds.getWidth(),
+      viewSize.getHeight() / bounds.getHeight()));
+    setScaling(new Scaling(scaleFactor));
+    scrollRectToVisible(new Rectangle((int) (bounds.getX() * scaleFactor),
+      (int) (bounds.getY() * scaleFactor),
+      (int) (bounds.getWidth() * scaleFactor),
+      (int) (bounds.getHeight() * scaleFactor)));
   }
 
   /**
@@ -845,6 +892,7 @@ DiagramEditorNotification, DiagramOperations, NodeChangeListener {
         umlclass.setAttributes(dialog.getAttributes());
         umlclass.setStereotypes(dialog.getStereotypes());
         redraw();
+        notifyStateChanged();
       }
     } else if (element instanceof Association) {
       Association association = (Association) element;
@@ -853,6 +901,7 @@ DiagramEditorNotification, DiagramOperations, NodeChangeListener {
       dialog.setLocationRelativeTo(frame);
       dialog.setVisible(true);
       redraw();
+      notifyStateChanged();
     }
   }
 

@@ -38,7 +38,7 @@ public final class Scaling {
    * Constructor.
    * @param scaleFactor the scaling factor
    */
-  private Scaling(double scaleFactor) {
+  public Scaling(double scaleFactor) {
     this.scaleFactor = scaleFactor;
   }
 

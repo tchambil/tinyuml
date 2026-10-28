@@ -120,6 +120,7 @@ public class MenuManager implements ActionListener {
     group.add(zoom100);
     group.add(zoom150);
     zoom100.setSelected(true);
+    createMenuItem(viewMenu, "fittowindow");
     viewMenu.addSeparator();
     JMenuItem showGrid = createCheckBoxMenuItem(viewMenu, "showgrid");
     showGrid.setSelected(true);

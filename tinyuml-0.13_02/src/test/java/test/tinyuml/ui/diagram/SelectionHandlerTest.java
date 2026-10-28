@@ -23,6 +23,7 @@ import org.jmock.Mock;
 import org.jmock.cglib.MockObjectTestCase;
 import org.tinyuml.ui.diagram.DiagramEditor;
 import org.tinyuml.ui.diagram.SelectionHandler;
+import org.tinyuml.ui.diagram.SelectionListener;
 import org.tinyuml.umldraw.structure.StructureDiagram;
 
 /**
@@ -46,7 +47,15 @@ public class SelectionHandlerTest extends MockObjectTestCase {
     handler = new SelectionHandler((DiagramEditor) mockEditor.proxy());
   }
   
-  public void testIt() {
-    
+  /**
+   * Tests that programmatic deselection notifies selection listeners.
+   */
+  public void testDeselectAllNotifiesListeners() {
+    Mock mockListener = mock(SelectionListener.class);
+    mockListener.expects(once()).method("selectionStateChanged");
+    handler.addSelectionListener((SelectionListener) mockListener.proxy());
+
+    handler.deselectAll();
+    assertTrue(handler.getSelectedElements().isEmpty());
   }
 }

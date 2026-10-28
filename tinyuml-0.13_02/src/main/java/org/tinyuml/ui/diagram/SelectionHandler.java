@@ -68,7 +68,10 @@ public class SelectionHandler implements EditorMode {
   /**
    * Deselects all elements.
    */
-  public void deselectAll() { currentSelection = NullSelection.getInstance(); }
+  public void deselectAll() {
+    currentSelection = NullSelection.getInstance();
+    notifyListeners();
+  }
 
   /**
    * {@inheritDoc}
@@ -265,6 +268,7 @@ public class SelectionHandler implements EditorMode {
   public void elementRemoved(DiagramElement element) {
     if (currentSelection.getElements().contains(element)) {
       currentSelection = NullSelection.getInstance();
+      notifyListeners();
     }
   }
 
@@ -280,6 +284,7 @@ public class SelectionHandler implements EditorMode {
    * @return the selected element
    */
   public List<DiagramElement> getSelectedElements() {
+    if (nothingSelected()) return NullSelection.getInstance().getElements();
     return currentSelection.getElements();
   }
 
